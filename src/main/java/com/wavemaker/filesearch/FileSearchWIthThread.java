@@ -99,7 +99,7 @@ public class FileSearchWIthThread {
     public static void main(String[] args) throws InterruptedException {
         FileSearchWIthThread fst = new FileSearchWIthThread();
         long startTime = System.currentTimeMillis();
-        System.out.println(fst.keySearch("/home/akshayk/Desktop/TestEmptyFolder", "I").keySet().size());
+        System.out.println(fst.keySearch("/home/akshayk/Desktop/TestEmptyFolder", "I",10).keySet().size());
         long endTime = System.currentTimeMillis();
         System.out.println(endTime - startTime);
     }

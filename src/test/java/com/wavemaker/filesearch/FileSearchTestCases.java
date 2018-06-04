@@ -19,7 +19,30 @@ public class FileSearchTestCases
         Assert.assertEquals(3,entryMap.size());
         Assert.assertEquals(5,entryMap.get("a.txt").get(2).getRowNumber());
     }
-
+    @Test
+    public void testFileSearchWithThreads() throws InterruptedException {
+        FileSearch fileSearch = new FileSearch();
+        FileSearchWIthThread fileSearchWIthThread = new FileSearchWIthThread();
+        Map<String,List<SearchEntry>> entryMap   = fileSearch.keyWordSearch("/home/akshayk/Desktop/TestFolder","I");
+        Map<String,List<SearchEntry>> resultMapOfThreadImplementation = fileSearchWIthThread.keySearch("/home/akshayk/Desktop/TestFolder","I",10);
+        Assert.assertEquals(entryMap.size(),resultMapOfThreadImplementation.size());
+        Assert.assertEquals(entryMap.keySet(),resultMapOfThreadImplementation.keySet());
+        Assert.assertEquals(entryMap.get("a.txt").get(2).getRowNumber(),resultMapOfThreadImplementation.get("a.txt").get(2).getRowNumber());
+    }
+    @Test
+    public void testTimeConsumptionBetweenApproaches() throws InterruptedException
+    {
+        FileSearch fileSearch = new FileSearch();
+        FileSearchWIthThread fileSearchWIthThread = new FileSearchWIthThread();
+        long startTimeOfIterartive = System.currentTimeMillis();
+        Map<String,List<SearchEntry>> entryMap   = fileSearch.keyWordSearch("/home/akshayk/Desktop/TestEmptyFolder","I");
+        long endTimeOfIterative = System.currentTimeMillis();
+        System.out.println("Time taken to process without threads " + (endTimeOfIterative - startTimeOfIterartive));
+        long startTimeOfConcurrence = System.currentTimeMillis();
+        Map<String,List<SearchEntry>> resultMapOfThreadImplementation = fileSearchWIthThread.keySearch("/home/akshayk/Desktop/TestEmptyFolder","I",10);
+        long endTimeOfConcurrence = System.currentTimeMillis();
+        System.out.println("Time taken to process with Threads"+(endTimeOfConcurrence - startTimeOfConcurrence));
+    }
 
 
 
