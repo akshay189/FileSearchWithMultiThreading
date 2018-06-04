@@ -22,7 +22,7 @@ public class FileSearch {
             if (file.isDirectory()) {
                 searchFile(file.getPath(), keyToBeSearched, resultMap);
             } else {
-                resultMap.put(file.getName(), searchFile(file, keyToBeSearched));
+                resultMap.put(file.getPath(), searchFile(file, keyToBeSearched));
             }
         }
     }
