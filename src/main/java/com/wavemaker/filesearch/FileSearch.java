@@ -12,7 +12,7 @@ public class FileSearch {
 
     public Map<String, List<SearchEntry>> keyWordSearch(String filePath, String stringToBeSearched) {
         Map<String, List<SearchEntry>> result = new HashMap<>();
-        searchFile(filePath, stringToBeSearched, result);
+        searchFile(filePath, stringToBeSearched.toLowerCase(), result);
         return result;
     }
 
@@ -35,6 +35,7 @@ public class FileSearch {
             int rowCount = 0, index;
             bufferedReader = new BufferedReader(new FileReader(file));
             while ((line = bufferedReader.readLine()) != null) {
+                line = line.toLowerCase();
                 index = 0;
                 rowCount++;
                 while ((index = line.indexOf(keyToBeSearched, index)) != -1) {

@@ -12,11 +12,13 @@ public class FileSearchTestCases
 
 
     @Test
-    public void testFileSearch()
+    public void testFileSearch() throws InterruptedException
     {
         FileSearch fileSearch = new FileSearch();
         Map<String,List<SearchEntry>> entryMap   = fileSearch.keyWordSearch("/home/akshayk/Desktop/testFolder","Java");
         System.out.println(entryMap.get("/home/akshayk/Desktop/testFolder/Effective_Java_2nd_Edition.pdf").size());
+        FileSearchWIthThread fileSearchWIthThread = new FileSearchWIthThread();
+        System.out.println(fileSearchWIthThread.keySearch("/home/akshayk/Desktop/testFolder","Java",10).get("/home/akshayk/Desktop/testFolder/folder1/Effective_Java_2nd_Edition.pdf").size());
 //        Assert.assertEquals(3,entryMap.size());
 //        Assert.assertEquals(5,entryMap.get("a.txt").get(2).getRowNumber());
     }

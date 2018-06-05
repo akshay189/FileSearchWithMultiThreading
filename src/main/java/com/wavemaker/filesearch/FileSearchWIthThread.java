@@ -14,7 +14,7 @@ public class FileSearchWIthThread {
 
     public Map<String, List<SearchEntry>> keySearch(String folderPath, String searchKey,int numberOfConsumerThreads) throws InterruptedException {
 
-        SearchContext searchContext = new SearchContext(folderPath, searchKey, new HashMap<>(), new ArrayBlockingQueue<String>(50));
+        SearchContext searchContext = new SearchContext(folderPath, searchKey.toLowerCase(), new HashMap<>(), new ArrayBlockingQueue<String>(50));
 
         Thread producerThread = new Thread(new Producer(searchContext));
         producerThread.start();
@@ -63,15 +63,17 @@ public class FileSearchWIthThread {
 
         @Override
         public void run() {
-            List<SearchEntry> listOfSearchEntries = new ArrayList<>();
+            List<SearchEntry> listOfSearchEntries;
             BufferedReader bufferedReader = null;
             try {
                 while (!searchContext.getListOfFiles().isEmpty() || !searchContext.isFinished()) {
+                    listOfSearchEntries = new ArrayList<>();
                     String filePath = searchContext.getListOfFiles().take();
                     String line;
                     int rowCount = 0, index;
                     bufferedReader = new BufferedReader(new FileReader(new File(filePath)));
                     while ((line = bufferedReader.readLine()) != null) {
+                        line = line.toLowerCase();
                         index = 0;
                         rowCount++;
                         while ((index = line.indexOf(searchContext.getSearchKey(), index)) != -1) {
