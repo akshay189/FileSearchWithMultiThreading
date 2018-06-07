@@ -39,10 +39,15 @@ public class FileSearchTestCases  {
 
 
     }
+    @Test
+    public void testLogFile()throws InterruptedException
+    {
+        WordSearch parallelSearch = new WordSearch();
+        parallelSearch.searchWord("/home/akshayk/Desktop/TestFolder","java",10,false);
+    }
 
     @Test
     public void testFileSearchSequentialAndParallel() throws InterruptedException {
-
 
         WordSearch linearSearch = new WordSearch();;
         WordSearch parallelSearch = new WordSearch();
@@ -74,19 +79,17 @@ public class FileSearchTestCases  {
         thread2.join();
 
         Map<String, List<SearchEntry>> linearSearcOutput = linearSearch.getResult();
-        Map<String, List<SearchEntry>> multiProcessingOutput = parallelSearch.getResult();
+        Map<String, List<SearchEntry>> parallelSearchOutput = parallelSearch.getResult();
 
-        Assert.assertEquals(linearSearcOutput.size(),multiProcessingOutput.size());
+        Assert.assertEquals(linearSearcOutput.size(),parallelSearchOutput.size());
 
         for(Map.Entry<String,List<SearchEntry>> entry : linearSearcOutput.entrySet())
         {
             String file = entry.getKey();
-            Assert.assertTrue(multiProcessingOutput.containsKey(file));
-
+            Assert.assertTrue(parallelSearchOutput.containsKey(file));
 
             List<SearchEntry> linearSearch_Result = entry.getValue();
-            List<SearchEntry> parallelSearch_Result = multiProcessingOutput.get(file);
-
+            List<SearchEntry> parallelSearch_Result = parallelSearchOutput.get(file);
 
             Iterator linearSearchIterator = linearSearch_Result.iterator();
             Iterator parallelSearchIterator = parallelSearch_Result.iterator();

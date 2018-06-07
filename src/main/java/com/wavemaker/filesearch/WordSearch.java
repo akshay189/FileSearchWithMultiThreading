@@ -9,13 +9,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 
+import org.apache.logging.log4j.*;
+import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.xml.DOMConfigurator;
+
 
 public class WordSearch {
 
     private Map<String, List<SearchEntry>> result;
+    static Logger log = Logger.getLogger(WordSearch.class.getName());
 
-    public WordSearch()
-    {
+    public WordSearch() {
         this.result = new HashMap<>();
 
     }
@@ -25,6 +30,7 @@ public class WordSearch {
         SearchContext searchContext = new SearchContext(folderPath, searchKey.toLowerCase(), result, new ArrayBlockingQueue<String>(50));
         Thread producerThread = new Thread(new Producer(searchContext));
         producerThread.start();
+        log.info("producer Thread started");
         if (sequential) {
             producerThread.join();
             searchFile(1, searchContext);
@@ -40,14 +46,17 @@ public class WordSearch {
         List<Thread> threadList = new ArrayList<>(numberOfConsumerThreads);
         for (int i = 0; i < numberOfConsumerThreads; i++) {
             Thread consumerThread = new Thread(consumer);
-            consumerThread.setName("Thread- " + i);
+            consumerThread.setName("ConsumerThread- " + i);
             threadList.add(consumerThread);
+            log.info("consumer Thread :" + consumerThread.getName() + " has started");
             consumerThread.start();
+
         }
         for (Thread thread : threadList) {
             thread.join();
         }
     }
+
     public class Producer implements Runnable {
         private SearchContext searchContext;
 
@@ -67,6 +76,7 @@ public class WordSearch {
                 if (file.isDirectory()) {
                     searchFile(file.getPath(), searchContext);
                 } else {
+                    log.info("Producer adding file : " + file.getPath());
                     searchContext.getListOfFiles().add(file.getPath());
                 }
             }
@@ -79,9 +89,9 @@ public class WordSearch {
         Consumer(SearchContext searchContext) {
             this.searchContext = searchContext;
         }
+
         @Override
-        public void run()
-        {
+        public void run() {
             List<SearchEntry> listOfSearchEntries;
             BufferedReader bufferedReader = null;
             try {
@@ -89,9 +99,13 @@ public class WordSearch {
                     String filePath;
                     synchronized (searchContext) {
                         if (searchContext.getListOfFiles().isEmpty() && searchContext.isFinished()) {
+                            log.info("Consumer Thread "+Thread.currentThread().getName()+" has returned and list is empty");
                             return;
-                        } else
+                        } else {
+
                             filePath = searchContext.getListOfFiles().take();
+                            log.info("Consumer Thread "+Thread.currentThread().getName()+" has taken file "+filePath+" to process...");
+                        }
                     }
                     listOfSearchEntries = new ArrayList<>();
 
@@ -110,12 +124,14 @@ public class WordSearch {
                     searchContext.getResult().put(filePath, listOfSearchEntries);
                 }
             } catch (Exception ex) {
+                log.error("An interrupted exception has occured");
                 throw new RuntimeException(ex);
             } finally {
                 if (bufferedReader != null) {
                     try {
                         bufferedReader.close();
                     } catch (Exception ex) {
+                        log.error("Failed to close the stream");
                         throw new RuntimeException("Failed to close the stream", ex);
                     }
                 }
