@@ -1,97 +1,107 @@
 package com.wavemaker.filesearch;
 
 
-import org.testng.annotations.Test;
 import org.testng.Assert;
+import org.testng.annotations.Test;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
-public class FileSearchTestCases
-{
-
+public class FileSearchTestCases  {
 
 
     @Test
-    public void testFileSearch() throws InterruptedException
+    public void testPerformance()throws InterruptedException
     {
-        FileSearch fileSearch = new FileSearch();
-        Map<String,List<SearchEntry>> entryMap   = fileSearch.keyWordSearch("/home/akshayk/Desktop/testFolder","Java");
-        System.out.println(entryMap.get("/home/akshayk/Desktop/testFolder/Effective_Java_2nd_Edition.pdf").size());
-        FileSearchWIthThread fileSearchWIthThread = new FileSearchWIthThread();
-        System.out.println(fileSearchWIthThread.keySearch("/home/akshayk/Desktop/testFolder","Java",10).get("/home/akshayk/Desktop/testFolder/folder1/Effective_Java_2nd_Edition.pdf").size());
-//        Assert.assertEquals(3,entryMap.size());
-//        Assert.assertEquals(5,entryMap.get("a.txt").get(2).getRowNumber());
+        WordSearch linearSearch = new WordSearch();
+        /*
+        * Linear search Performance */
+
+        long startTimeOfLinearSearch = System.currentTimeMillis();
+        linearSearch.searchWord("/home/akshayk/Desktop/TestFolder","Java",1,true);
+        long endTimeOfLinearSearch = System.currentTimeMillis();
+
+        System.out.println(endTimeOfLinearSearch - startTimeOfLinearSearch);
+
+        /*
+        * Parallel Search Performance */
+        WordSearch parallelSearch = new WordSearch();
+
+        for(int i=2;i<=14;i+=2)
+        {
+            long startTimeOfParallelSearch = System.currentTimeMillis();
+            parallelSearch.searchWord("/home/akshayk/Desktop/TestFolder","Java",i,false);
+            long endTimeOfParallelSearch = System.currentTimeMillis();
+
+            System.out.println("Time taken by "+i+" Threads "+(endTimeOfParallelSearch - startTimeOfParallelSearch));
+        }
+
+
     }
+
     @Test
-    public void testFileSearchWithThreads() throws InterruptedException {
-        FileSearch fileSearch = new FileSearch();
-        FileSearchWIthThread fileSearchWIthThread = new FileSearchWIthThread();
-        Map<String,List<SearchEntry>> entryMap   = fileSearch.keyWordSearch("/home/akshayk/Desktop/TestFolder","I");
-
-        Map<String,List<SearchEntry>> resultMapOfThreadImplementation = fileSearchWIthThread.keySearch("/home/akshayk/Desktop/TestFolder","I",10);
+    public void testFileSearchSequentialAndParallel() throws InterruptedException {
 
 
+        WordSearch linearSearch = new WordSearch();;
+        WordSearch parallelSearch = new WordSearch();
 
-        Assert.assertEquals(entryMap.size(),resultMapOfThreadImplementation.size());
-        Assert.assertEquals(entryMap.keySet(),resultMapOfThreadImplementation.keySet());
-        Assert.assertEquals(entryMap.get("a.txt").get(2).getRowNumber(),resultMapOfThreadImplementation.get("a.txt").get(2).getRowNumber());
+
+        Thread thread1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    linearSearch.searchWord("/home/akshayk/Desktop/TestFolder", "Java", 1, true);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException("Thread interrupt :"+e);
+                }
+            }
+        });
+        Thread thread2 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    parallelSearch.searchWord("/home/akshayk/Desktop/TestFolder","java",10,false);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException("Thread interrupt :"+e);
+                }
+            }
+        });
+        thread1.start();
+        thread2.start();
+        thread1.join();
+        thread2.join();
+
+        Map<String, List<SearchEntry>> linearSearcOutput = linearSearch.getResult();
+        Map<String, List<SearchEntry>> multiProcessingOutput = parallelSearch.getResult();
+
+        Assert.assertEquals(linearSearcOutput.size(),multiProcessingOutput.size());
+
+        for(Map.Entry<String,List<SearchEntry>> entry : linearSearcOutput.entrySet())
+        {
+            String file = entry.getKey();
+            Assert.assertTrue(multiProcessingOutput.containsKey(file));
+
+
+            List<SearchEntry> linearSearch_Result = entry.getValue();
+            List<SearchEntry> parallelSearch_Result = multiProcessingOutput.get(file);
+
+
+            Iterator linearSearchIterator = linearSearch_Result.iterator();
+            Iterator parallelSearchIterator = parallelSearch_Result.iterator();
+
+
+            while(linearSearchIterator.hasNext() && parallelSearchIterator.hasNext())
+            {
+                SearchEntry sequentialListEntry = (SearchEntry) linearSearchIterator.next();
+                SearchEntry parallelListEntry = (SearchEntry) parallelSearchIterator.next();
+
+                Assert.assertEquals(sequentialListEntry.getRowNumber(),parallelListEntry.getRowNumber());
+                Assert.assertEquals(sequentialListEntry.getColumnNumber(),parallelListEntry.getColumnNumber());
+            }
+        }
+
     }
-    @Test
-    public void testTimeConsumptionBetweenApproaches() throws InterruptedException
-    {
-        FileSearch fileSearch = new FileSearch();
-        FileSearchWIthThread fileSearchWIthThread = new FileSearchWIthThread();
-        long startTimeOfIterartive = System.currentTimeMillis();
-        Map<String,List<SearchEntry>> entryMap   = fileSearch.keyWordSearch("/home/akshayk/Desktop/TestEmptyFolder","I");
-        long endTimeOfIterative = System.currentTimeMillis();
-        System.out.println("Time taken to process without threads " + (endTimeOfIterative - startTimeOfIterartive));
-        long startTimeOfConcurrence = System.currentTimeMillis();
-        Map<String,List<SearchEntry>> resultMapOfThreadImplementation = fileSearchWIthThread.keySearch("/home/akshayk/Desktop/TestEmptyFolder","I",10);
-        long endTimeOfConcurrence = System.currentTimeMillis();
-        System.out.println("Time taken to process with Threads"+(endTimeOfConcurrence - startTimeOfConcurrence));
-    }
-
-
-
-
-    /*@Test
-    public void testFileresult() throws IOException {
-        FileSearch fileSearch = new FileSearch();
-        Map<String,List<SearchEntry>> entryMap = fileSearch.keyWordSearch("/home/akshayk/Desktop/TestFolder","I");
-        Assert.assertEquals(2,entryMap.size());
-        Assert.assertEquals(5,entryMap.get("a.txt").get(2).getRowNUmber());
-    }
-    @Test
-    public void testEmptyFIle() throws IOException
-    {
-        FileSearch fileSearch = new FileSearch();
-        List<SearchEntry> entryList = fileSearch.keyWordSearch("/home/akshayk/IdeaProjects/javafilesearch/src/main/java/com/wavemaker/filesearch/emptyFile.txt","I");
-        Assert.assertEquals(0,entryList.size());
-        Assert.assertTrue(entryList.isEmpty());
-    }
-    @Test(expectedExceptions = FileNotFoundException.class)
-    public void testNoFileInput() throws IOException
-    {
-        FileSearch fileSearch = new FileSearch();
-        List<SearchEntry> entryList = fileSearch.keyWordSearch("","I");
-        Assert.assertEquals(0,entryList.size());
-        Assert.assertTrue(entryList.isEmpty());
-    }
-    @Test
-    public void testDirectoryResults()throws IOException
-    {
-        DirectorySearch directorySearch = new DirectorySearch();
-        Map<String,List<SearchEntry>> resultMap = directorySearch.listOfFiles("/home/akshayk/Desktop/TestFolder");
-        Assert.assertEquals(2,resultMap.size());
-        Assert.assertEquals(7,resultMap.get("a.txt").size());
-    }
-    @Test
-    public void testEmptyDirectory()throws IOException
-    {
-        DirectorySearch directorySearch = new DirectorySearch();
-        Map<String,List<SearchEntry>> resultMap = directorySearch.listOfFiles("/home/akshayk/Desktop/TestEmptyFolder");
-        Assert.assertEquals(0,resultMap.size());
-        Assert.assertTrue(resultMap.isEmpty());
-    }*/
 }
 

@@ -10,26 +10,45 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 
 
-public class FileSearchWIthThread {
+public class WordSearch {
 
-    public Map<String, List<SearchEntry>> keySearch(String folderPath, String searchKey,int numberOfConsumerThreads) throws InterruptedException {
+    private Map<String, List<SearchEntry>> result;
 
-        SearchContext searchContext = new SearchContext(folderPath, searchKey.toLowerCase(), new HashMap<>(), new ArrayBlockingQueue<String>(50));
+    public WordSearch()
+    {
+        this.result = new HashMap<>();
 
-        Thread producerThread = new Thread(new Producer(searchContext));
-        producerThread.start();
-
-        Thread consumerThread = new Thread(new Consumer(searchContext));
-        consumerThread.start();
-
-        producerThread.join();
-        consumerThread.join();
-
-        return searchContext.getResult();
     }
 
-    public class Producer implements Runnable {
+    public void searchWord(String folderPath, String searchKey, int numberOfConsumerThreads, boolean sequential) throws InterruptedException {
 
+        SearchContext searchContext = new SearchContext(folderPath, searchKey.toLowerCase(), result, new ArrayBlockingQueue<String>(50));
+        Thread producerThread = new Thread(new Producer(searchContext));
+        producerThread.start();
+        if (sequential) {
+            producerThread.join();
+            searchFile(1, searchContext);
+        } else
+            searchFile(numberOfConsumerThreads, searchContext);
+        //return searchContext.getResult();
+    }
+
+    private void searchFile(int numberOfConsumerThreads, SearchContext searchContext) throws InterruptedException {
+
+        Consumer consumer = new Consumer(searchContext);
+
+        List<Thread> threadList = new ArrayList<>(numberOfConsumerThreads);
+        for (int i = 0; i < numberOfConsumerThreads; i++) {
+            Thread consumerThread = new Thread(consumer);
+            consumerThread.setName("Thread- " + i);
+            threadList.add(consumerThread);
+            consumerThread.start();
+        }
+        for (Thread thread : threadList) {
+            thread.join();
+        }
+    }
+    public class Producer implements Runnable {
         private SearchContext searchContext;
 
         Producer(SearchContext searchContextInfo) {
@@ -60,15 +79,22 @@ public class FileSearchWIthThread {
         Consumer(SearchContext searchContext) {
             this.searchContext = searchContext;
         }
-
         @Override
-        public void run() {
+        public void run()
+        {
             List<SearchEntry> listOfSearchEntries;
             BufferedReader bufferedReader = null;
             try {
-                while (!searchContext.getListOfFiles().isEmpty() || !searchContext.isFinished()) {
+                while (true) {
+                    String filePath;
+                    synchronized (searchContext) {
+                        if (searchContext.getListOfFiles().isEmpty() && searchContext.isFinished()) {
+                            return;
+                        } else
+                            filePath = searchContext.getListOfFiles().take();
+                    }
                     listOfSearchEntries = new ArrayList<>();
-                    String filePath = searchContext.getListOfFiles().take();
+
                     String line;
                     int rowCount = 0, index;
                     bufferedReader = new BufferedReader(new FileReader(new File(filePath)));
@@ -97,12 +123,9 @@ public class FileSearchWIthThread {
         }
     }
 
-
-    public static void main(String[] args) throws InterruptedException {
-        FileSearchWIthThread fst = new FileSearchWIthThread();
-        long startTime = System.currentTimeMillis();
-        System.out.println(fst.keySearch("/home/akshayk/Desktop/TestEmptyFolder", "I",10).keySet().size());
-        long endTime = System.currentTimeMillis();
-        System.out.println(endTime - startTime);
+    public Map<String, List<SearchEntry>> getResult() {
+        return result;
     }
+
+
 }
