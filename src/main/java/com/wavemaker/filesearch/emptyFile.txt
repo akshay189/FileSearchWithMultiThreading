@@ -1,4 +1,0 @@
-1) MultiTasking Vs MultiProcessing?
-2) Threads
-3) Synchronization
-4) y Synchorization?

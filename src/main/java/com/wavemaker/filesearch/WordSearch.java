@@ -2,17 +2,12 @@ package com.wavemaker.filesearch;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
-
-import org.apache.logging.log4j.*;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.log4j.Logger;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.xml.DOMConfigurator;
 
 
 public class WordSearch {
@@ -21,7 +16,7 @@ public class WordSearch {
     static Logger log = Logger.getLogger(WordSearch.class.getName());
 
     public WordSearch() {
-        this.result = new HashMap<>();
+        this.result = new ConcurrentHashMap<>();
 
     }
 
@@ -107,21 +102,9 @@ public class WordSearch {
                             log.info("Consumer Thread "+Thread.currentThread().getName()+" has taken file "+filePath+" to process...");
                         }
                     }
-                    listOfSearchEntries = new ArrayList<>();
-
-                    String line;
-                    int rowCount = 0, index;
-                    bufferedReader = new BufferedReader(new FileReader(new File(filePath)));
-                    while ((line = bufferedReader.readLine()) != null) {
-                        line = line.toLowerCase();
-                        index = 0;
-                        rowCount++;
-                        while ((index = line.indexOf(searchContext.getSearchKey(), index)) != -1) {
-                            listOfSearchEntries.add(new SearchEntry(rowCount, index));
-                            index += 1;
-                        }
-                    }
-                    searchContext.getResult().put(filePath, listOfSearchEntries);
+                    listOfSearchEntries = searchContext.getFileSearchObject().searchFile(new File(filePath),searchContext.getSearchKey());
+                    if(listOfSearchEntries.size() != 0)
+                        searchContext.getResult().put(filePath, listOfSearchEntries);
                 }
             } catch (Exception ex) {
                 log.error("An interrupted exception has occured");

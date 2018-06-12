@@ -10,12 +10,13 @@ public class SearchContext {
     private Map<String, List<SearchEntry>> result;
     private BlockingQueue<String> listOfFiles;
     private boolean finished;
-
+    private FileSearch fileSearch = new FileSearch();
     public SearchContext(String folderPath, String searchKey,Map<String,List<SearchEntry>> result, BlockingQueue<String> listOfFiles) {
         this.folderPath = folderPath;
         this.searchKey = searchKey;
         this.result = result;
         this.listOfFiles = listOfFiles;
+
     }
 
     public String getFolderPath() {
@@ -53,7 +54,10 @@ public class SearchContext {
     public boolean isFinished() {
         return finished;
     }
-
+    public FileSearch getFileSearchObject()
+    {
+        return fileSearch;
+    }
     public void setFinished(boolean finished) {
         this.finished = finished;
     }

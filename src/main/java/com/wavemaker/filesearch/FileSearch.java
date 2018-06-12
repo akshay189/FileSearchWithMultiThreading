@@ -1,7 +1,6 @@
 package com.wavemaker.filesearch;
 
 
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -24,21 +23,23 @@ public class FileSearch {
             if (file.isDirectory()) {
                 searchFile(file.getPath(), keyToBeSearched, resultMap);
             } else {
-                resultMap.put(file.getPath(), searchFile(file, keyToBeSearched));
+                List listOfSearchEntries = searchFile(file,keyToBeSearched);
+                if(listOfSearchEntries.size()!=0 )
+                    resultMap.put(file.getPath(), searchFile(file, keyToBeSearched));
             }
         }
     }
 
-    private List<SearchEntry> searchFile(File file, String keyToBeSearched) {
+    public List<SearchEntry> searchFile(File file, String keyToBeSearched) {
         List<SearchEntry> listOfSearchEntries = new ArrayList<>();
         BufferedReader bufferedReader = null;
         try {
             String line;
-            int rowCount = 0, index;
+            int rowCount = 0;
             bufferedReader = new BufferedReader(new FileReader(file));
             while ((line = bufferedReader.readLine()) != null) {
                 line = line.toLowerCase();
-                index = 0;
+                int index = 0;
                 rowCount++;
                 while ((index = line.indexOf(keyToBeSearched, index)) != -1) {
                     listOfSearchEntries.add(new SearchEntry(rowCount, index));
@@ -49,10 +50,12 @@ public class FileSearch {
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         } finally {
-            try {
-                bufferedReader.close();
-            } catch (Exception ex) {
-                throw new RuntimeException("Failed to close the stream", ex);
+            if (bufferedReader != null) {
+                try {
+                    bufferedReader.close();
+                } catch (Exception ex) {
+                    throw new RuntimeException("Failed to close the stream", ex);
+                }
             }
         }
     }
