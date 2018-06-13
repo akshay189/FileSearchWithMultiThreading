@@ -1,7 +1,6 @@
 package com.wavemaker.filesearch;
 
-public class SearchEntry
-{
+public class SearchEntry {
     private int rowNumber;
     private int columnNumber;
 
@@ -16,5 +15,17 @@ public class SearchEntry
 
     public int getColumnNumber() {
         return columnNumber;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj != null) {
+            if (obj instanceof SearchEntry) {
+                if (((SearchEntry) obj).getRowNumber() == this.rowNumber && ((SearchEntry) obj).getColumnNumber() == this.columnNumber) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

@@ -20,6 +20,7 @@ public class FileSearchTestCases  {
 
         long startTimeOfLinearSearch = System.currentTimeMillis();
         linearSearch.searchWord("/home/akshayk/Desktop/TestFolder","Java",1,true);
+
         long endTimeOfLinearSearch = System.currentTimeMillis();
 
         System.out.println(endTimeOfLinearSearch - startTimeOfLinearSearch);
@@ -32,6 +33,7 @@ public class FileSearchTestCases  {
         {
             long startTimeOfParallelSearch = System.currentTimeMillis();
             parallelSearch.searchWord("/home/akshayk/Desktop/TestFolder","Java",i,false);
+
             long endTimeOfParallelSearch = System.currentTimeMillis();
 
             System.out.println("Time taken by "+i+" Threads "+(endTimeOfParallelSearch - startTimeOfParallelSearch));
@@ -83,26 +85,17 @@ public class FileSearchTestCases  {
 
         Assert.assertEquals(linearSearcOutput.size(),parallelSearchOutput.size());
 
-        for(Map.Entry<String,List<SearchEntry>> entry : linearSearcOutput.entrySet())
-        {
+        for(Map.Entry<String,List<SearchEntry>> entry : linearSearcOutput.entrySet()) {
             String file = entry.getKey();
             Assert.assertTrue(parallelSearchOutput.containsKey(file));
 
             List<SearchEntry> linearSearch_Result = entry.getValue();
             List<SearchEntry> parallelSearch_Result = parallelSearchOutput.get(file);
 
-            Iterator linearSearchIterator = linearSearch_Result.iterator();
-            Iterator parallelSearchIterator = parallelSearch_Result.iterator();
+            Assert.assertEquals(linearSearch_Result.size(), parallelSearch_Result.size());
+            Assert.assertTrue(linearSearch_Result.equals(parallelSearch_Result));
 
 
-            while(linearSearchIterator.hasNext() && parallelSearchIterator.hasNext())
-            {
-                SearchEntry sequentialListEntry = (SearchEntry) linearSearchIterator.next();
-                SearchEntry parallelListEntry = (SearchEntry) parallelSearchIterator.next();
-
-                Assert.assertEquals(sequentialListEntry.getRowNumber(),parallelListEntry.getRowNumber());
-                Assert.assertEquals(sequentialListEntry.getColumnNumber(),parallelListEntry.getColumnNumber());
-            }
         }
 
     }

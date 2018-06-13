@@ -103,8 +103,9 @@ public class WordSearch {
                         }
                     }
                     listOfSearchEntries = searchContext.getFileSearchObject().searchFile(new File(filePath),searchContext.getSearchKey());
-                    if(listOfSearchEntries.size() != 0)
+                    if(listOfSearchEntries.size() != 0) {
                         searchContext.getResult().put(filePath, listOfSearchEntries);
+                    }
                 }
             } catch (Exception ex) {
                 log.error("An interrupted exception has occured");
